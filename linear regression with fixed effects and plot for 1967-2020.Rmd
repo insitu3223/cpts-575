@@ -1,0 +1,26 @@
+#linear regression with fixed effect, 1967-2020 for corn
+
+corn<-read.csv("~/R/Merged-crop-flaring-1967-2020.csv",sep=',',header=TRUE)
+
+
+lm.fit=lm(cornyield~gas.flaring+precipitation+avgtemp+hdd+cdd+factor(fipscode)+factor(year),data = corn)
+summary(lm.fit)
+
+par(mfrow=c(2,2))
+plot(lm.fit)
+plot(corn$gas.flaring,corn$cornyield)
+
+
+
+#linear regression with fixed effect,1967-2020 for soybeans
+
+
+soybean <- read.csv("C:/Users/T430/Desktop/Defense/soymerged.csv",sep=',',header=TRUE)
+View(`soybean`)
+ par(mfrow=c(2,2))
+
+
+lm.fit=lmsoybean.yield~flaring+precipitation+avgtemp+hdd+cdd+factor(fipscode)+factor(year),data = soybean)
+summary(lm.fit)
+
+plot(lm(formula=soybean.yield~flaring+precipitation+avgtemp+hdd+cdd+factor(fipscode)+factor(year),data = soybean))
