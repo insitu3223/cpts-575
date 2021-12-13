@@ -1,0 +1,135 @@
+---
+title: "Assignment4-575-SIta"
+author: "SK"
+date: "9/30/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+library(dplyr)
+library(tidyverse)
+
+load("C:/Users/T430/Downloads/airports.rda")
+load("C:/Users/T430/Downloads/flights.rda")
+load("C:/Users/T430/Downloads/planes.rda")
+load("C:/Users/T430/Downloads/weather.rda")
+```
+
+```{r}
+# 1a) (10pts) Filter the dataset (using a left join)to display the tail number, year, month, #day,  hour, origin,and #humidity  for all  flights heading  to Tampa #International Airport(TPA) after12pm on November 1, 2013.
+
+#flights %>% left_join(weather) %>%
+#  select(tailnum,year:day,hour,origin,dest,humid) %>% filter(day == 1, year == 2013, month == 11, dest=="TPA", hour>=12)
+
+flights %>% left_join(weather) %>% filter(day == 1, year == 2013, month == 11, dest=="TPA", hour>=12)  %>%
+  select(tailnum,year:day,hour,origin,humid)
+
+
+#newd %>% filter(day == 1, year == 2013, month == 11, hour>=12)
+```
+
+```{r}
+#(10 pts) b What is the difference between the following two joins?
+#They are just the opposite of left_join and right_join
+anti_join(flights, airports, by = c("dest" = "faa"))
+```
+# The anti_join(flights, airports, by = c("dest" = "faa")) returns ##the flights that went to an airport that is not in the FAA list of #destinations. 
+# the FAA list contains only domestic airports, these are likely
+#foreign flights.
+# We can see  only four airports in this list.anti_join(flights, airports, by = c("dest" = "faa")) %>% 
+
+```{r}
+anti_join(airports, flights, by = c("faa" = "dest"))
+
+```
+
+#The expression anti_join(airports, flights, by = c("faa" = "dest")) 
+#gives the US airports that were not the destination of any flight
+# the data contains list of all flights from New York City airports, # also gives the list #of US airports with a #nonstop flight from New #York City in 2013.
+
+
+#i found this information revelatent for the the flights and airports
+#tables are derived from different sources. Flights data retrived 
+#from the US Department of Transportation Bureau of Transportation #Statistics, while the airport data comes from openflights.org. 
+
+# BTS includes Puerto Rico and U.S. Virgin Islands as “domestic”
+#(part of the US), while the openflights.org give use different 
+#values of country for airports in the US states ("United States") 
+#Puerto Rico ("Puerto Rico") and US Virgin Islands ("Virgin #Islands").
+
+```{r}
+# c)(10 pts) Filter the table flights to only show flights with planes that have flown at 
+#least 100 flights. Hint: tailnum is used to identify planes. (suggested functions: R:
+#semi_join(), count(), filter(); Python: merge(), value_counts(), filter())
+
+planes_gte100 <- flights %>%
+  filter(!is.na(tailnum)) %>%
+  group_by(tailnum) %>%
+  count() %>%
+  filter(n >= 100)
+flights %>%
+  semi_join(planes_gte100, by = "tailnum")
+
+```
+
+```{r}
+## d(10 pts) What weather conditions make it more likely to see a delay? Briefly discuss 
+#any relations/patterns you found
+# Here what i found is almost any amount of precipitation is associated with a delay. 
+#thus there is not a strong a trend above 0.02 in. of precipitation
+
+flight_weather <-
+  flights %>%
+  inner_join(weather, by = c(
+    "origin" = "origin",
+    "year" = "year",
+    "month" = "month",
+    "day" = "day",
+    "hour" = "hour"
+  ))
+flight_weather %>%
+  group_by(precip) %>%
+  summarise(delay = mean(dep_delay, na.rm = TRUE)) %>%
+  ggplot(aes(x = precip, y = delay)) +
+  geom_line() + geom_point()
+
+```
+
+
+```{r}
+
+flight_weather %>%
+  ungroup() %>%
+  mutate(visib_cat = cut_interval(visib, n = 10)) %>%
+  group_by(visib_cat) %>%
+  summarise(dep_delay = mean(dep_delay, na.rm = TRUE)) %>%
+  ggplot(aes(x = visib_cat, y = dep_delay)) +
+  geom_point()
+
+```
+
+```{r}
+#(10 pts) Produce a map that sizes each destination airport by the number of 
+#incoming flights. You may use a continuous scale for the size. Here is a code 
+#snippet to draw a map of all flight destinations, which you can use as a starting 
+#point. You may need to install the maps packages if you have not already. Adjust 
+#the title, axis labels and aesthetics to make this visualization as clear as possible.
+
+flights %>%
+ left_join(airports, c("dest" = "faa")) %>%
+ ggplot(aes(lon, lat)) +
+ borders("state") +
+ geom_point() +
+ coord_quickmap()+geom_count()+labs(title = "U.S. States",subtitle = "Eash Destination airport by the number of incoming flights.")
+
+```
+
+
+
+
+
+
+
+
