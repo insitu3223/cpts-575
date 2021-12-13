@@ -1,0 +1,14 @@
+
+# Linear regression(1967-2020 without fixed effect)
+Merged.crop.flaring <- read.csv("~/ana/Merged-crop-flaring.csv")
+View(Merged.crop.flaring)
+lr_model=lm(cornyield ~ gas.flaring+precipitation+avgtemp+cdd+hdd,data=Merged.crop.flaring)
+summary(lr_model)
+
+
+#correlation between response and predixtors
+install.packages("corrplot")
+library(corrplot)
+pairs(~ Merged.crop.flaring$cornyield+Merged.crop.flaring$gas.flaring +Merged.crop.flaring$precipitation+Merged.crop.flaring$avgtemp+ Merged.crop.flaring$hdd+ Merged.crop.flaring$cdd, data=Merged.crop.flaring,owerpanel=panel.smooth)
+
+
