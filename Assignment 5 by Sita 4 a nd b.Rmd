@@ -1,0 +1,108 @@
+---
+title: "rrrr"
+author: "SK"
+date: "10/29/2021"
+output:
+  word_document: default
+  html_document: default
+---
+# QN: 4 a
+```{r}
+# I this problem, I disscuss with my project team members(vishnu, prashanth) and we did it 
+#also we asked professor after class that we can remove those empty rows of non-complain from 
+#our data manually in excel and then answer the question for 4 a and b
+#consumer_complains include my excel files manually shorted for all no complaints rows
+
+library(tokenizers)
+library(stopwords)
+library(corpus)
+library(tm)
+library(NLP)
+library(SnowballC)
+library(quanteda)
+library(quanteda.textstats)
+library(caret)
+library(quanteda.textmodels)
+library(e1071)
+
+consumer_complaints=read.csv("C:/Users/T430/Downloads/consumer_complaintss.csv",stringsAsFactors = FALSE)
+ My_Documents = consumer_complaints
+ 
+
+ 
+num<- nrow(My_Documents)
+#create the corpus
+The_Corpus <- corpus(My_Documents[["Consumer_complaint"]], documentnames =My_Documents [["X"]],
+                   documentvars = data.frame(grp = My_Documents[["X"]]))
+dM <- dfm(The_Corpus)
+#tokenization and stemming and creating the document-feature matrix
+dfm <- dfm_wordstem(dM)
+#removed any feature which appears less than 1% of documents
+cutoff <- as.integer(num * 1/100)
+dfm<- dfm_trim(dfm, min_docfreq = cutoff)
+#remove stopwords
+dfm<-dfm_select(dfm, pattern = stopwords("en"), selection = "remove")
+# select and print the text of a random article
+#along with the non-zero entries of its feature vector
+selected_doc<-dfm_subset(dfm, grp == 10)
+selected_doc
+
+#4b
+
+corelationMatrix<-textstat_simil(dfm, margin = "features", method = "correlation")
+highlyCorrelated <- findCorrelation(as.matrix(correlationMatrix), cutoff=0.75, names=TRUE)
+dict <- dictionary(list(corr = highlyCorrelated))
+dfm<-dfm_select(d, pattern = dict, selection = "remove")
+#get training set
+set.seed(300)
+training80 <- as.integer(num * 80/100)
+Nb_train <- sample(1:num, training80, replace = FALSE)
+length(unique(My_Documents[["Product"]]))
+trainingdocument <- subset(My_Documents, X %in% Nb_train)
+length(unique(trainingdocument[["Product"]]))
+testingdocument <- subset(My_Documents, !X %in% Nb_train)
+length(unique(testingdocument[["Product"]]))
+trainingset<-dfm_subset(dfm, grp %in% Nb_train)
+#get the test dfms
+testingset<-dfm_subset(dfm, !grp %in% Nb_train)
+#built the Naïve Bayes classifier from training data
+tmod_nb <- textmodel_nb(trainingset, trainingdocument$Product)
+#predict the categories of test data
+actual <- test_document$Product
+predicted <- predict(tmod_nb, newdata = testingset)
+tab<- table(actual, predicted)
+tab
+confusionMatrix(tab, mode = "everything")
+
+
+
+# Alternatively I tried professor code for part 4 a, but got an error(Error in nchar(rownames(m)) : invalid multibyte string, element 4074 )
+#Corpus and documen-term matrix
+consumer_complaints1=read.csv("C:/Users/T430/Downloads/consumer_complaints.csv",stringsAsFactors = FALSE)
+corpus <- Corpus(VectorSource(consumer_complaints1$Consumer_complaint))
+
+dtm = DocumentTermMatrix(corpus,control=list(removeNumbers = TRUE,stopwords=TRUE,stemming = TRUE))
+
+Removing words that appear in too few  doxuments(sparse terms)
+
+dtm = removeSparseTerms(dtm,0.99)
+
+
+# then we did as,for 4 a and we got 100% sparsity
+
+corpus <- Corpus(VectorSource(consumer_complaints1$Consumer_complaint))
+corpus = tm_map(corpus, tolower)
+
+corpus = tm_map(corpus, removePunctuation)
+
+corpus = tm_map(corpus, stemDocument)
+
+count_terms=DocumentTermMatrix(corpus)
+
+count_terms
+
+# (DocumentTermMatrix (documents: 323229, terms: 67248)>>
+#Non-/sparse entries: 9566673/21726937119
+#Sparsity           : 100%
+#Maximal term length: 1975
+#Weighting          : term frequency (tf))
