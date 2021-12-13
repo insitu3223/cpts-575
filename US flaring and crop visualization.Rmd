@@ -1,0 +1,110 @@
+---
+title: "Untitled"
+author: "vishnu"
+date: "11/21/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+flaringvscrop=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/usflaringvscropandotherparameters.csv")
+lm.fit=lm(Yield~.,data=flaringvscrop)
+summary(lm.fit)
+par(mfrow=c(2,2))
+plot(lm.fit)
+```
+
+```{r}
+avgtemp=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/avg temp us states.csv")
+usstateflaring=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/State flaring.csv")
+avgtempmerged= merge(avgtemp,usstateflaring,by=c("state","year"))
+cdd=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/cdd us states.csv")
+cddmerged=merge(cdd,avgtempmerged,by=c("state","year"))
+hdd=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/hdd us states.csv")
+hddmerged=merge(hdd,cddmerged,by=c("state","year"))
+precipit=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/precep_67-20.csv")
+precimerged=merge(hddmerged,precipit,by=c("state","year"))
+corn=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/onlycorn67_20.csv")
+cornmerged=merge(precimerged,corn,by=c("state","year"))
+cornmerged
+write.csv(cornmerged,"C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/merged.csv",row.names=FALSE)
+```
+
+```{r}
+merged=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/merged - edit.csv")
+lm.fit=lm(corn.yield~flaring+hdd+cdd+avgtemp+precipitation+poly(precipitation,4)+poly(flaring,3)+factor(year)+factor(state),data=merged)
+summary(lm.fit)
+par(mfrow=c(2,2))
+plot(lm.fit)
+plot(merged$flaring,merged$corn.yield)
+```
+```{r}
+within=plm(corn.yield~flaring+hdd+cdd+avgtemp+precipitation+poly(precipitation,4)+poly(flaring,3)+factor(year),index="state",model="within",data=merged)
+par(mfrow=c(2,2))
+plot(lm.fit)
+summary(within)
+```
+
+
+```{r}
+library(usmap)
+library(ggplot2)
+usflaringmap=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/usmapvis.csv")
+plot_usmap(data = usflaringmap, values = "flaring",labels = T, color = "red") + 
+  scale_fill_continuous( low = "yellow", high = "red",name = "Total Flaring(1967-2020)", label = scales::comma) + 
+  theme(legend.position = "right")
+```
+
+```{r}
+library(usmap)
+library(ggplot2)
+uscorn=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/cornusvis.csv")
+plot_usmap(data = uscorn, values = "cornyield",labels = T, color = "red") + 
+  scale_fill_continuous( low = "yellow", high = "green",name = "Total Corn Yield(1967-2020)", label = scales::comma) + 
+  theme(legend.position = "right")
+```
+
+```{r}
+library(usmap)
+library(ggplot2)
+ussoy=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/soyusvis.csv")
+plot_usmap(data = ussoy, values = "soyyield",labels = T, color = "red") + 
+  scale_fill_continuous( low = "yellow", high = "green",name = "Total Soybean Yield(1967-2020)", label = scales::comma) + 
+  theme(legend.position = "right")
+```
+
+
+```{r}
+avgtemp=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/avg temp us states.csv")
+usstateflaring=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/State flaring.csv")
+avgtempmerged= merge(avgtemp,usstateflaring,by=c("state","year"))
+cdd=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/cdd us states.csv")
+cddmerged=merge(cdd,avgtempmerged,by=c("state","year"))
+hdd=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/hdd us states.csv")
+hddmerged=merge(hdd,cddmerged,by=c("state","year"))
+precipit=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/precep_67-20.csv")
+precimerged=merge(hddmerged,precipit,by=c("state","year"))
+soy=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/onlysoybean67_20.csv")
+soymerged=merge(precimerged,soy,by=c("state","year"))
+soymerged
+write.csv(soymerged,"C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/soymerged.csv",row.names=FALSE)
+```
+
+```{r}
+precimerged
+```
+```{r}
+library(usmap)
+library(ggplot2)
+
+usmap=read.csv("C:/Users/jvish/OneDrive/Desktop/Fall21/CPT_S 575/DS Project/globalflaring2012-2016.csv")
+
+plot_usmap() +
+  geom_point(data = usmap, aes(x = Longitude, y = Latitude, size = TotalBCM),
+             color = "red", alpha = 0.05)  +
+  theme(legend.position = "right")
+```
+
